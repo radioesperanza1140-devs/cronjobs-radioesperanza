@@ -1,0 +1,11 @@
+services:
+  node-job:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cronjob-current-program
+    restart: always
+    logging:
+      driver: json-file
+    environment:
+      - NODE_ENV=production

@@ -1,0 +1,14 @@
+{
+    "name": "node-job-current-program",
+    "version": "1.0.0",
+    "description": "Node.js job que realiza consultas cada 30 minutos",
+    "main": "cronjob.js",
+    "scripts": {
+        "start": "node cronjob.js"
+    },
+    "dependencies": {
+        "axios": "^1.0.0",
+        "date-fns": "^4.1.0",
+        "node-schedule": "^2.1.0"
+    }
+}

@@ -1,6 +1,7 @@
 const schedule = require("node-schedule");
 const axios = require("axios");
-const { parse } = require("date-fns");
+const moment = require('moment-timezone');
+
 
 // URL base de la API
 const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
@@ -10,7 +11,7 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
  */
 async function performQuery() {
   try {
-    console.log("Consulta iniciada:", new Date());
+    console.log("Consulta iniciada:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss'));
     const programations = await getProgramations();
     let diaActual = new Date().toLocaleString("es-ES", { weekday: "long" });
   
@@ -25,26 +26,24 @@ async function performQuery() {
       }
   
       let diasDeEmision = programacion.dias_EnEmision;
-      console.log(isValidDay(diasDeEmision, diaActual));
-  
+      
       if (isValidDay(diasDeEmision, diaActual)) {
-        // Obtener la fecha actual en formato 'yyyy-MM-dd'
-        const fechaHoy = new Date().toISOString().split('T')[0];  // Esto da "YYYY-MM-DD"
-  
+        const fechaHoy = moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD');
+        
+
         // Concatenar la fecha con el tiempo de inicio y fin
         const horaInicioStr = `${fechaHoy}T${programacion.horario_emision_inicio}`;
         const horaFinStr = `${fechaHoy}T${programacion.horario_emision_fin}`;
   
         // Convertir las cadenas a objetos Date
-        const horaInicio = new Date(horaInicioStr);
-        const horaFin = new Date(horaFinStr);
-  
-        const ahora = new Date(); 
+        const horaInicio = new moment.utc(new Date(horaInicioStr)).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss');
+        const horaFin = new moment.utc(new Date(horaFinStr)).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss');
+        const ahora = new moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss'); 
+        console.log(horaInicio);
+        console.log(horaFin);
+        console.log(ahora);
         // Verificar si la hora actual está dentro del rango de emisión
-        let isValid = (horaInicio <= ahora && horaFin >= ahora);
-        console.log(`Es Valido: ${isValid}`);
-  
-        if (isValid) {
+        if (horaInicio <= ahora && horaFin >= ahora) {
           console.log(`Programación activa: ${programacion.title}`);
           await updateProgramation(programacion.documentId, 1);
         }
@@ -110,6 +109,7 @@ const updateProgramation = async (programationId, isActive) => {
 const isValidDay = (rangoDias, diaActual) => {
   rangoDias = rangoDias.toLowerCase().trim();
   diaActual = diaActual.toLowerCase().trim();
+  console.log(diaActual);
   let diasDeLaSemana = [
     "domingo",
     "lunes",
@@ -137,10 +137,10 @@ const isValidDay = (rangoDias, diaActual) => {
 };
 
 // Programa el job para ejecutarse cada 30 minutos
-schedule.scheduleJob("*/30 * * * *", async () => {
-  console.log("Job iniciado:", new Date());
+schedule.scheduleJob("*/1 * * * *", async () => {
+  console.log("Job iniciado:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD'));
   await performQuery();
-  console.log("Job terminado:", new Date());
+  console.log("Job terminado:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD'));
 });
 
 console.log("Job programado para ejecutarse cada 30 minutos.");

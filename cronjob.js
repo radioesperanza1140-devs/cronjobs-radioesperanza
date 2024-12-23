@@ -11,7 +11,7 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
  */
 async function performQuery() {
   try {
-    console.log("Consulta iniciada:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss'));
+    console.log("Consulta iniciada:", moment.utc(new Date()).format('YYYY-MM-DDTHH:mm:ss'));
     const programations = await getProgramations();
     let diaActual = new Date().toLocaleString("es-ES", { weekday: "long" });
   
@@ -28,7 +28,7 @@ async function performQuery() {
       let diasDeEmision = programacion.dias_EnEmision;
       
       if (isValidDay(diasDeEmision, diaActual)) {
-        const fechaHoy = moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD');
+        const fechaHoy = moment.utc(new Date()).format('YYYY-MM-DD');
         
 
         // Concatenar la fecha con el tiempo de inicio y fin
@@ -36,9 +36,9 @@ async function performQuery() {
         const horaFinStr = `${fechaHoy}T${programacion.horario_emision_fin}`;
   
         // Convertir las cadenas a objetos Date
-        const horaInicio = new moment.utc(new Date(horaInicioStr)).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss');
-        const horaFin = new moment.utc(new Date(horaFinStr)).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss');
-        const ahora = new moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DDTHH:mm:ss'); 
+        const horaInicio = new moment.utc(new Date(horaInicioStr)).format('YYYY-MM-DDTHH:mm:ss');
+        const horaFin = new moment.utc(new Date(horaFinStr)).format('YYYY-MM-DDTHH:mm:ss');
+        const ahora = new moment.utc(new Date()).format('YYYY-MM-DDTHH:mm:ss'); 
         console.log(horaInicio);
         console.log(horaFin);
         console.log(ahora);
@@ -138,9 +138,9 @@ const isValidDay = (rangoDias, diaActual) => {
 
 // Programa el job para ejecutarse cada 30 minutos
 schedule.scheduleJob("*/1 * * * *", async () => {
-  console.log("Job iniciado:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD'));
+  console.log("Job iniciado:", moment.utc(new Date()).format('YYYY-MM-DD'));
   await performQuery();
-  console.log("Job terminado:", moment.utc(new Date()).tz("America/Bogota").format('YYYY-MM-DD'));
+  console.log("Job terminado:", moment.utc(new Date()).format('YYYY-MM-DD'));
 });
 
 console.log("Job programado para ejecutarse cada 30 minutos.");

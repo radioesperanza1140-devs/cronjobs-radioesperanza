@@ -1,7 +1,9 @@
 const schedule = require("node-schedule");
 const axios = require("axios");
-const moment = require('moment-timezone');
+const moment = require("moment-timezone");
 
+// Zona horaria para Colombia
+const TIMEZONE = "America/Bogota";
 
 // URL base de la API
 const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
@@ -11,9 +13,9 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
  */
 async function performQuery() {
   try {
-    console.log("Consulta iniciada:", moment.utc(new Date()).format('YYYY-MM-DDTHH:mm:ss'));
+    console.log("Consulta iniciada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
     const programations = await getProgramations();
-    let diaActual = new Date().toLocaleString("es-ES", { weekday: "long" });
+    let diaActual = moment().tz(TIMEZONE).locale("es").format("dddd"); // Día actual en español
   
     for (const programacion of programations) {
       // Desactivar todas las programaciones previas
@@ -28,33 +30,33 @@ async function performQuery() {
       let diasDeEmision = programacion.dias_EnEmision;
       
       if (isValidDay(diasDeEmision, diaActual)) {
-        const fechaHoy = moment.utc(new Date()).format('YYYY-MM-DD');
-        
+        const fechaHoy = moment().tz(TIMEZONE).format("YYYY-MM-DD");
 
         // Concatenar la fecha con el tiempo de inicio y fin
         const horaInicioStr = `${fechaHoy}T${programacion.horario_emision_inicio}`;
         const horaFinStr = `${fechaHoy}T${programacion.horario_emision_fin}`;
   
-        // Convertir las cadenas a objetos Date
-        const horaInicio = new moment.utc(new Date(horaInicioStr)).format('YYYY-MM-DDTHH:mm:ss');
-        const horaFin = new moment.utc(new Date(horaFinStr)).format('YYYY-MM-DDTHH:mm:ss');
-        const ahora = new moment.utc(new Date()).format('YYYY-MM-DDTHH:mm:ss'); 
-        console.log(horaInicio);
-        console.log(horaFin);
-        console.log(ahora);
+        // Convertir las cadenas a objetos moment en la zona horaria correcta
+        const horaInicio = moment.tz(horaInicioStr, TIMEZONE);
+        const horaFin = moment.tz(horaFinStr, TIMEZONE);
+        const ahora = moment().tz(TIMEZONE);
+  
+        console.log(`Hora inicio: ${horaInicio.format("YYYY-MM-DDTHH:mm:ss")}`);
+        console.log(`Hora fin: ${horaFin.format("YYYY-MM-DDTHH:mm:ss")}`);
+        console.log(`Hora actual: ${ahora.format("YYYY-MM-DDTHH:mm:ss")}`);
+  
         // Verificar si la hora actual está dentro del rango de emisión
-        if (horaInicio <= ahora && horaFin >= ahora) {
+        if (ahora.isBetween(horaInicio, horaFin, null, "[)")) {
           console.log(`Programación activa: ${programacion.title}`);
           await updateProgramation(programacion.documentId, 1);
         }
       }
     }
   
-    console.log("Consulta finalizada:", new Date());
+    console.log("Consulta finalizada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
   } catch (error) {
     console.error("Error durante la ejecución del job:", error);
   }
-  
 }
 
 /**
@@ -138,9 +140,9 @@ const isValidDay = (rangoDias, diaActual) => {
 
 // Programa el job para ejecutarse cada 30 minutos
 schedule.scheduleJob("*/1 * * * *", async () => {
-  console.log("Job iniciado:", moment.utc(new Date()).format('YYYY-MM-DD'));
+  console.log("Job iniciado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
   await performQuery();
-  console.log("Job terminado:", moment.utc(new Date()).format('YYYY-MM-DD'));
+  console.log("Job terminado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
 });
 
 console.log("Job programado para ejecutarse cada 30 minutos.");

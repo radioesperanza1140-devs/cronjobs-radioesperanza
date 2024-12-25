@@ -13,7 +13,7 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
  */
 async function performQuery() {
   try {
-    console.log("Consulta iniciada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
+    console.log("Consulta iniciada:", moment().local().format("YYYY-MM-DDTHH:mm:ss"));
     const programations = await getProgramations();
     let diaActual = moment().tz(TIMEZONE).locale("es").format("dddd"); // Día actual en español
   
@@ -30,16 +30,16 @@ async function performQuery() {
       let diasDeEmision = programacion.dias_EnEmision;
       
       if (isValidDay(diasDeEmision, diaActual)) {
-        const fechaHoy = moment().tz(TIMEZONE).format("YYYY-MM-DD");
+        const fechaHoy = moment().tz(TIMEZONE).local().format("YYYY-MM-DD");
 
         // Concatenar la fecha con el tiempo de inicio y fin
         const horaInicioStr = `${fechaHoy}T${programacion.horario_emision_inicio}`;
         const horaFinStr = `${fechaHoy}T${programacion.horario_emision_fin}`;
   
         // Convertir las cadenas a objetos moment en la zona horaria correcta
-        const horaInicio = moment.tz(horaInicioStr, TIMEZONE);
-        const horaFin = moment.tz(horaFinStr, TIMEZONE);
-        const ahora = moment().tz(TIMEZONE);
+        const horaInicio = moment.tz(horaInicioStr, TIMEZONE).local();
+        const horaFin = moment.tz(horaFinStr, TIMEZONE).local();
+        const ahora = moment().tz(TIMEZONE).local();
   
         console.log(`Hora inicio: ${horaInicio.format("YYYY-MM-DDTHH:mm:ss")}`);
         console.log(`Hora fin: ${horaFin.format("YYYY-MM-DDTHH:mm:ss")}`);
@@ -53,7 +53,7 @@ async function performQuery() {
       }
     }
   
-    console.log("Consulta finalizada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
+    console.log("Consulta finalizada:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
   } catch (error) {
     console.error("Error durante la ejecución del job:", error);
   }
@@ -140,9 +140,9 @@ const isValidDay = (rangoDias, diaActual) => {
 
 // Programa el job para ejecutarse cada 30 minutos
 schedule.scheduleJob("*/1 * * * *", async () => {
-  console.log("Job iniciado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
+  console.log("Job iniciado:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
   await performQuery();
-  console.log("Job terminado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
+  console.log("Job terminado:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
 });
 
 console.log("Job programado para ejecutarse cada 30 minutos.");

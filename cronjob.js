@@ -21,7 +21,9 @@ async function performQuery() {
     let diaActual = fechaHoy.locale("es").format("dddd"); // Día actual en español
   
     for (const programacion of programations) {
-      // Desactivar todas las programaciones previas  
+      // Desactivar todas las programaciones previas
+      await updateProgramation(programacion.documentId, 0);
+        
       // Verificar que los datos esenciales existan
       if (!programacion.dias_EnEmision || !programacion.horario_emision_inicio || !programacion.horario_emision_fin) {
         console.error("Datos incompletos en programación:", programacion);
@@ -49,6 +51,7 @@ async function performQuery() {
         // Verificar si la hora actual está dentro del rango de emisión
         if (ahora.isBetween(horaInicio, horaFin, null, "[)")) {
           console.log(`Programación activa: ${programacion.title}`);
+          await updateProgramation(programacion.documentId, 1);
         }
       }
     }
@@ -62,7 +65,6 @@ async function performQuery() {
 /**
  * Obtiene las programaciones desde la API.
  */
-
 const getProgramations = async () => {
   try {
     const response = await axios.get(`${apiUrl}?populate=imagen`);
@@ -73,6 +75,32 @@ const getProgramations = async () => {
       error.response?.data || error.message
     );
     return [];
+  }
+};
+
+/**
+ * Actualiza el estado de una programación en la API.
+ *
+ * @param {string} programationId - ID de la programación.
+ * @param {number} isActive - Estado de la programación (1 para activa, 0 para inactiva).
+ */
+const updateProgramation = async (programationId, isActive) => {
+  try {
+    const response = await axios.put(`${apiUrl}/${programationId}`, {
+      data: {
+        currentProgram: isActive,
+      },
+    });
+    console.log(
+      `Programación ${programationId} actualizada a estado: ${isActive}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error al actualizar la programación ${programationId}:`,
+      error.response?.data || error.message
+    );
+    return null;
   }
 };
 

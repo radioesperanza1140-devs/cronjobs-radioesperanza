@@ -13,14 +13,15 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
  */
 async function performQuery() {
   try {
-    console.log("Consulta iniciada:", moment().local().format("YYYY-MM-DDTHH:mm:ss"));
+    let fechaHoy = moment().tz(TIMEZONE);
+    
+    console.log("Consulta iniciada:", fechaHoy.format("YYYY-MM-DDTHH:mm:ss"));
     const programations = await getProgramations();
-    let diaActual = moment().tz(TIMEZONE).locale("es").format("dddd"); // Día actual en español
+    
+    let diaActual = fechaHoy.locale("es").format("dddd"); // Día actual en español
   
     for (const programacion of programations) {
-      // Desactivar todas las programaciones previas
-      await updateProgramation(programacion.documentId, 0);
-  
+      // Desactivar todas las programaciones previas  
       // Verificar que los datos esenciales existan
       if (!programacion.dias_EnEmision || !programacion.horario_emision_inicio || !programacion.horario_emision_fin) {
         console.error("Datos incompletos en programación:", programacion);
@@ -30,16 +31,16 @@ async function performQuery() {
       let diasDeEmision = programacion.dias_EnEmision;
       
       if (isValidDay(diasDeEmision, diaActual)) {
-        const fechaHoy = moment().tz(TIMEZONE).local().format("YYYY-MM-DD");
+        let fechaHoyFormatted = fechaHoy.format("YYYY-MM-DD");
 
         // Concatenar la fecha con el tiempo de inicio y fin
-        const horaInicioStr = `${fechaHoy}T${programacion.horario_emision_inicio}`;
-        const horaFinStr = `${fechaHoy}T${programacion.horario_emision_fin}`;
+        const horaInicioStr = `${fechaHoyFormatted}T${programacion.horario_emision_inicio}`;
+        const horaFinStr = `${fechaHoyFormatted}T${programacion.horario_emision_fin}`;
   
         // Convertir las cadenas a objetos moment en la zona horaria correcta
-        const horaInicio = moment.tz(horaInicioStr, TIMEZONE).local();
-        const horaFin = moment.tz(horaFinStr, TIMEZONE).local();
-        const ahora = moment().tz(TIMEZONE).local();
+        const horaInicio = moment.tz(horaInicioStr, TIMEZONE);
+        const horaFin = moment.tz(horaFinStr, TIMEZONE);
+        const ahora = moment().tz(TIMEZONE);
   
         console.log(`Hora inicio: ${horaInicio.format("YYYY-MM-DDTHH:mm:ss")}`);
         console.log(`Hora fin: ${horaFin.format("YYYY-MM-DDTHH:mm:ss")}`);
@@ -48,12 +49,11 @@ async function performQuery() {
         // Verificar si la hora actual está dentro del rango de emisión
         if (ahora.isBetween(horaInicio, horaFin, null, "[)")) {
           console.log(`Programación activa: ${programacion.title}`);
-          await updateProgramation(programacion.documentId, 1);
         }
       }
     }
   
-    console.log("Consulta finalizada:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
+    console.log("Consulta finalizada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
   } catch (error) {
     console.error("Error durante la ejecución del job:", error);
   }
@@ -62,6 +62,7 @@ async function performQuery() {
 /**
  * Obtiene las programaciones desde la API.
  */
+
 const getProgramations = async () => {
   try {
     const response = await axios.get(`${apiUrl}?populate=imagen`);
@@ -72,32 +73,6 @@ const getProgramations = async () => {
       error.response?.data || error.message
     );
     return [];
-  }
-};
-
-/**
- * Actualiza el estado de una programación en la API.
- *
- * @param {string} programationId - ID de la programación.
- * @param {number} isActive - Estado de la programación (1 para activa, 0 para inactiva).
- */
-const updateProgramation = async (programationId, isActive) => {
-  try {
-    const response = await axios.put(`${apiUrl}/${programationId}`, {
-      data: {
-        currentProgram: isActive,
-      },
-    });
-    console.log(
-      `Programación ${programationId} actualizada a estado: ${isActive}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      `Error al actualizar la programación ${programationId}:`,
-      error.response?.data || error.message
-    );
-    return null;
   }
 };
 
@@ -140,9 +115,9 @@ const isValidDay = (rangoDias, diaActual) => {
 
 // Programa el job para ejecutarse cada 30 minutos
 schedule.scheduleJob("*/1 * * * *", async () => {
-  console.log("Job iniciado:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
+  console.log("Job iniciado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
   await performQuery();
-  console.log("Job terminado:", moment().tz(TIMEZONE).local().format("YYYY-MM-DDTHH:mm:ss"));
+  console.log("Job terminado:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
 });
 
 console.log("Job programado para ejecutarse cada 30 minutos.");

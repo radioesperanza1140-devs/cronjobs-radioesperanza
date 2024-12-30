@@ -14,49 +14,10 @@ const apiUrl = "https://dev.radioesperanza1140.com/api/programations";
 async function performQuery() {
   try {
     let fechaHoy = moment().tz(TIMEZONE);
-    
-    console.log("Consulta iniciada:", fechaHoy.format("YYYY-MM-DDTHH:mm:ss"));
-    const programations = await getProgramations();
-    
-    let diaActual = fechaHoy.locale("es").format("dddd"); // Día actual en español
-  
-    for (const programacion of programations) {
-      // Desactivar todas las programaciones previas
-      await updateProgramation(programacion.documentId, 0);
-        
-      // Verificar que los datos esenciales existan
-      if (!programacion.dias_EnEmision || !programacion.horario_emision_inicio || !programacion.horario_emision_fin) {
-        console.error("Datos incompletos en programación:", programacion);
-        continue;
-      }
-  
-      let diasDeEmision = programacion.dias_EnEmision;
-      
-      if (isValidDay(diasDeEmision, diaActual)) {
-        let fechaHoyFormatted = fechaHoy.format("YYYY-MM-DD");
+    let fechaHoy2 = moment().utcOffset(-5); 
 
-        // Concatenar la fecha con el tiempo de inicio y fin
-        const horaInicioStr = `${fechaHoyFormatted}T${programacion.horario_emision_inicio}`;
-        const horaFinStr = `${fechaHoyFormatted}T${programacion.horario_emision_fin}`;
-  
-        // Convertir las cadenas a objetos moment en la zona horaria correcta
-        const horaInicio = moment.tz(horaInicioStr, TIMEZONE);
-        const horaFin = moment.tz(horaFinStr, TIMEZONE);
-        const ahora = moment().tz(TIMEZONE);
-  
-        console.log(`Hora inicio: ${horaInicio.format("YYYY-MM-DDTHH:mm:ss")}`);
-        console.log(`Hora fin: ${horaFin.format("YYYY-MM-DDTHH:mm:ss")}`);
-        console.log(`Hora actual: ${ahora.format("YYYY-MM-DDTHH:mm:ss")}`);
-  
-        // Verificar si la hora actual está dentro del rango de emisión
-        if (ahora.isBetween(horaInicio, horaFin, null, "[)")) {
-          console.log(`Programación activa: ${programacion.title}`);
-          await updateProgramation(programacion.documentId, 1);
-        }
-      }
-    }
-  
-    console.log("Consulta finalizada:", moment().tz(TIMEZONE).format("YYYY-MM-DDTHH:mm:ss"));
+    console.log("Consulta iniciada 1:", fechaHoy.format("YYYY-MM-DDTHH:mm:ss"));
+    console.log("Consulta iniciada 2:", fechaHoy2.format("YYYY-MM-DDTHH:mm:ss"));
   } catch (error) {
     console.error("Error durante la ejecución del job:", error);
   }

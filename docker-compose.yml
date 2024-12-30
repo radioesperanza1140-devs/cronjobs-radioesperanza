@@ -6,6 +6,8 @@ services:
     container_name: cronjob-current-program
     restart: always
     logging:
-      driver: json-file
+      driver: "json-file"
+      options:
+        max-size: "50m"
     environment:
       - NODE_ENV=production
